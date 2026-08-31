@@ -48,6 +48,15 @@
     const statRejected = document.getElementById('stat-rejected');
     const statTrimmed = document.getElementById('stat-trimmed');
     const currentFilename = document.getElementById('current-filename');
+    const queueSourceBadge = document.getElementById('queue-source-badge');
+    const trimmedQueueBanner = document.getElementById('trimmed-queue-banner');
+    const btnSaveZip = document.getElementById('btn-save-zip');
+    const zipBtnLabel = document.getElementById('zip-btn-label');
+    const zipExportOverlay = document.getElementById('zip-export-overlay');
+    const zipProgressFill = document.getElementById('zip-progress-fill');
+    const zipProgressText = document.getElementById('zip-progress-text');
+
+    let isExportingZip = false;
     const currentStatusBadge = document.getElementById('current-status-badge');
 
     const timecodeDisplay = document.getElementById('timecode-display');
@@ -286,6 +295,13 @@
           currentStatusBadge.innerHTML = '<span>⚪</span> <span>Pending Review</span>';
         }
       }
+
+      if (queueSourceBadge) {
+        queueSourceBadge.classList.toggle('hidden', currentQueueType !== 'trimmed');
+      }
+      if (currentQueueType !== 'trimmed' && trimmedQueueBanner) {
+        trimmedQueueBanner.classList.add('hidden');
+      }
     }
 
     function selectFile(index, queueType = 'main') {
@@ -349,6 +365,19 @@
     floatBtnPlay.onclick = togglePlayPause;
     btnNavPlayPause.onclick = togglePlayPause;
 
+    function showTrimmedQueueTransition() {
+      if (!trimmedQueueBanner) return;
+      trimmedQueueBanner.classList.remove('hidden');
+      if (queueSourceBadge) queueSourceBadge.classList.remove('hidden');
+    }
+
+    const btnDismissTrimmedBanner = document.getElementById('btn-dismiss-trimmed-banner');
+    if (btnDismissTrimmedBanner) {
+      btnDismissTrimmedBanner.onclick = () => {
+        if (trimmedQueueBanner) trimmedQueueBanner.classList.add('hidden');
+      };
+    }
+
     // Queue Navigation
     function navigateQueue(direction) {
       if (direction === 'prev') {
@@ -367,6 +396,7 @@
             selectFile(currentIndex + 1, 'main');
           } else if (trimmedFilesState.length > 0) {
             selectFile(0, 'trimmed');
+            showTrimmedQueueTransition();
           }
         } else if (currentQueueType === 'trimmed') {
           if (currentIndex < trimmedFilesState.length - 1) {
@@ -961,7 +991,25 @@
       saveAs(item.file, `${item.status === 'rejected' ? 'REJECTED_' : 'APPROVED_'}${item.name}`);
     };
 
-    document.getElementById('btn-save-zip').onclick = async () => {
+    function setZipExportUi(isBusy, percent = 0) {
+      isExportingZip = isBusy;
+      const pct = Math.max(0, Math.min(100, Math.round(percent)));
+      if (btnSaveZip) btnSaveZip.disabled = isBusy;
+      if (zipBtnLabel) {
+        zipBtnLabel.textContent = isBusy
+          ? `Generating ZIP... ${pct}%`
+          : '📦 Export ZIP';
+      }
+      if (zipExportOverlay) {
+        zipExportOverlay.classList.toggle('hidden', !isBusy);
+      }
+      if (zipProgressFill) zipProgressFill.style.width = `${pct}%`;
+      if (zipProgressText) zipProgressText.textContent = `${pct}%`;
+    }
+
+    btnSaveZip.onclick = async () => {
+      if (isExportingZip) return;
+
       const zip = new JSZip();
       const approvedFolder = zip.folder("Approved");
       const rejectedFolder = zip.folder("Rejected");
@@ -989,6 +1037,21 @@
         return;
       }
 
-      const zipBlob = await zip.generateAsync({ type: "blob" });
-      saveAs(zipBlob, `QA_Media_Batch_${Date.now()}.zip`);
+      setZipExportUi(true, 0);
+
+      try {
+        const zipBlob = await zip.generateAsync(
+          { type: "blob", streamFiles: true },
+          (metadata) => {
+            setZipExportUi(true, metadata.percent || 0);
+          }
+        );
+        setZipExportUi(true, 100);
+        saveAs(zipBlob, `QA_Media_Batch_${Date.now()}.zip`);
+      } catch (err) {
+        console.error(err);
+        alert('Failed to generate ZIP: ' + (err && err.message ? err.message : err));
+      } finally {
+        setZipExportUi(false, 0);
+      }
     };

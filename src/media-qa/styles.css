@@ -94,3 +94,15 @@
       transition: transform 0.05s ease-out;
       transform-origin: center center;
     }
+
+    .zip-spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid #334155;
+      border-top-color: #34d399;
+      border-radius: 50%;
+      animation: zip-spin 0.8s linear infinite;
+    }
+    @keyframes zip-spin {
+      to { transform: rotate(360deg); }
+    }

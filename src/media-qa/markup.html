@@ -62,8 +62,8 @@
         <button id="btn-save-current" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium transition shadow-sm">
           💾 Save Current
         </button>
-        <button id="btn-save-zip" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm flex items-center gap-1.5">
-          <span>📦 Export ZIP</span>
+        <button id="btn-save-zip" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-emerald-600">
+          <span id="zip-btn-label">📦 Export ZIP</span>
         </button>
       </div>
 
@@ -74,7 +74,7 @@
   <div class="flex flex-1 overflow-hidden relative">
 
     <!-- Left Controls Panel -->
-    <aside id="main-sidebar" class="w-80 bg-slate-900 border-r border-slate-800 p-3.5 flex flex-col gap-3 overflow-y-auto shrink-0 select-none">
+    <aside id="main-sidebar" class="w-80 bg-slate-900 border-r border-slate-800 p-3.5 flex flex-col gap-3 overflow-y-auto min-h-0 shrink-0 select-none">
       
       <!-- QA Decision Panel -->
       <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
@@ -158,22 +158,25 @@
         </button>
       </div>
 
-      <!-- Primary Media Queue -->
-      <div class="flex-1 flex flex-col min-h-[120px] bg-slate-950 p-3 rounded-xl border border-slate-800">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-indigo-400 mb-2 text-center">Media Queue</div>
-        <ul id="file-list" class="flex-1 overflow-y-auto space-y-1 text-xs pr-1 border border-slate-800 rounded-lg p-1.5 bg-slate-900/60">
-          <li class="text-slate-500 p-3 text-center italic">No media loaded yet</li>
-        </ul>
-      </div>
-
-      <!-- Dedicated Trimmed Files Queue -->
-      <div class="h-36 flex flex-col bg-slate-950 p-3 rounded-xl border border-slate-800">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-sky-400 mb-2 text-center flex items-center justify-center gap-1">
-          <span>✂️ Trimmed Files Queue</span>
+      <!-- Queue panels fill remaining sidebar height so more than ~2 files are visible at 100% zoom -->
+      <div class="flex-1 min-h-[280px] flex flex-col gap-3">
+        <!-- Primary Media Queue -->
+        <div class="flex-[2] min-h-0 flex flex-col bg-slate-950 p-3 rounded-xl border border-slate-800">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-indigo-400 mb-2 text-center shrink-0">Media Queue</div>
+          <ul id="file-list" class="flex-1 min-h-0 overflow-y-auto space-y-1 text-xs pr-1 border border-slate-800 rounded-lg p-1.5 bg-slate-900/60">
+            <li class="text-slate-500 p-3 text-center italic">No media loaded yet</li>
+          </ul>
         </div>
-        <ul id="trimmed-file-list" class="flex-1 overflow-y-auto space-y-1 text-xs pr-1 border border-slate-800 rounded-lg p-1.5 bg-slate-900/60">
-          <li class="text-slate-500 p-2 text-center italic">No trimmed files saved yet</li>
-        </ul>
+
+        <!-- Dedicated Trimmed Files Queue -->
+        <div class="flex-1 min-h-0 flex flex-col bg-slate-950 p-3 rounded-xl border border-slate-800">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-sky-400 mb-2 text-center flex items-center justify-center gap-1 shrink-0">
+            <span>✂️ Trimmed Files Queue</span>
+          </div>
+          <ul id="trimmed-file-list" class="flex-1 min-h-0 overflow-y-auto space-y-1 text-xs pr-1 border border-slate-800 rounded-lg p-1.5 bg-slate-900/60">
+            <li class="text-slate-500 p-2 text-center italic">No trimmed files saved yet</li>
+          </ul>
+        </div>
       </div>
 
       <div class="text-[10px] text-slate-500 text-center font-mono border-t border-slate-800/80 pt-1.5">
@@ -189,13 +192,23 @@
 
         <!-- Now Inspecting Top Bar Header -->
         <div id="video-header-bar" class="w-full bg-slate-900/95 backdrop-blur-md rounded-t-xl px-4 py-2 border border-slate-800 border-b-0 flex justify-between items-center text-xs shadow-md shrink-0">
-          <div class="flex items-center gap-2 truncate pr-4">
+          <div class="flex items-center gap-2 truncate pr-4 min-w-0">
             <span class="text-indigo-400 font-extrabold uppercase tracking-wider text-[11px]">Now Inspecting:</span>
             <span id="current-filename" class="font-mono text-slate-100 font-bold text-sm truncate">No file selected</span>
+            <span id="queue-source-badge" class="hidden shrink-0 bg-sky-950 text-sky-300 border border-sky-500/50 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide">✂️ Trimmed Queue</span>
           </div>
           <div id="current-status-badge" class="bg-slate-800 text-slate-400 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 border border-slate-700 shrink-0">
             <span>⚪</span> <span>Pending Review</span>
           </div>
+        </div>
+
+        <div id="trimmed-queue-banner" class="hidden w-full shrink-0 bg-sky-950/95 border border-sky-500/40 border-t-0 px-4 py-2.5 flex items-start gap-3 shadow-md" role="status" aria-live="polite">
+          <span class="text-sky-300 text-base leading-none mt-0.5">✂️</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-sky-100 text-xs font-bold">You have completed the primary queue. Now viewing newly created/trimmed files.</p>
+            <p class="text-[11px] text-sky-300/80 mt-0.5">These are the trimmed copies you already QA'd — they are listed in the Trimmed Files Queue.</p>
+          </div>
+          <button id="btn-dismiss-trimmed-banner" type="button" class="shrink-0 text-sky-200 hover:text-white text-xs font-bold px-2 py-1 rounded-lg border border-sky-500/40 hover:bg-sky-800/60">Dismiss</button>
         </div>
 
         <!-- Photos App Style Trim Dock -->
@@ -335,4 +348,19 @@
 
     </main>
 
+  </div>
+
+  <!-- ZIP generation overlay (in-memory zip can freeze the UI without this) -->
+  <div id="zip-export-overlay" class="hidden fixed inset-0 z-[200] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-6" aria-live="assertive" aria-busy="true">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl px-8 py-7 w-full max-w-sm flex flex-col items-center gap-4 text-center">
+      <div class="zip-spinner" aria-hidden="true"></div>
+      <div>
+        <p id="zip-overlay-title" class="text-slate-100 font-bold text-sm">Generating ZIP... Please wait</p>
+        <p id="zip-overlay-detail" class="text-slate-400 text-xs mt-1">Packing approved, rejected, and trimmed files in browser memory.</p>
+      </div>
+      <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+        <div id="zip-progress-fill" class="h-full bg-emerald-500 rounded-full transition-[width] duration-150" style="width: 0%"></div>
+      </div>
+      <p id="zip-progress-text" class="text-emerald-300 font-mono text-xs font-bold">0%</p>
+    </div>
   </div>
