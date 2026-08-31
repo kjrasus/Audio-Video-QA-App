@@ -1040,7 +1040,7 @@
       setZipExportUi(true, 0);
 
       try {
-        const zipBlob = await zip.generateAsync(
+        const zipBlob = await zip.generateAsync({ type: "blob", compression: "STORE" });
           { type: "blob", streamFiles: true },
           (metadata) => {
             setZipExportUi(true, metadata.percent || 0);
