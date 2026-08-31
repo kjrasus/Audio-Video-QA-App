@@ -7,13 +7,13 @@ import appScript from "../media-qa/app.js?raw";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Media QA Studio — Audio/Video Quality Assurance" },
+      { title: "Gen Z Studio — Audio/Video QA Automation Tool" },
       {
         name: "description",
         content:
           "Review, approve, reject, trim and crop audio/video files for quality assurance. Export approved and trimmed media as a ZIP.",
       },
-      { property: "og:title", content: "Media QA Studio" },
+      { property: "og:title", content: "Gen Z Studio" },
       {
         property: "og:description",
         content:
